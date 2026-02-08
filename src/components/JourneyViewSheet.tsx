@@ -69,8 +69,8 @@ function JourneyMap({ journey }: { journey: Journey }) {
         style={{ background: "#B8EDD2" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitPathBounds path={path} />
         <Polyline positions={positions} pathOptions={pathOptions} />

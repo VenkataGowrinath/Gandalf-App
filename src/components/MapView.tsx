@@ -11,6 +11,14 @@ import type { Group, CommunityMember } from "@/types"
 import { useInterpolatedPositions } from "@/lib/useInterpolatedPositions"
 import "leaflet/dist/leaflet.css"
 
+// Fix default icon 404 in production (bundler doesn't copy Leaflet's images)
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+})
+
 const DEFAULT_ZOOM = 16
 const TRAIL_SECONDS = 8
 const TRAIL_PUSH_INTERVAL_MS = 200
@@ -57,11 +65,6 @@ function createMemberIcon(
   const isMe = member.id.startsWith("me-")
   const isSuddenHalt = member.status.type === "sudden_halt"
   const size = isMe ? 56 : index % 3 === 0 ? 56 : 52
-  // #region agent log
-  if (member.id === "sm-4") {
-    fetch("http://127.0.0.1:7243/ingest/4b9cad50-ec19-4c48-9ad9-0b62b47c574e", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ location: "MapView.tsx:createMemberIcon", message: "Rahul marker render", data: { statusType: member.status.type, isSuddenHalt }, timestamp: Date.now(), hypothesisId: "D" }) }).catch(() => {})
-  }
-  // #endregion
 
   if (isSuddenHalt) {
     const cursor = "pointer"
@@ -365,17 +368,17 @@ export function MapView({
   }, [allMembers, group.currentUser.id, display])
 
   return (
-    <div className="relative h-full w-full overflow-hidden isolate rounded-2xl p-5 neo-shadow bg-white pointer-events-none">
+    <div className="relative h-full w-full min-h-[300px] overflow-hidden isolate rounded-2xl p-5 neo-shadow bg-white pointer-events-none">
       <MapContainer
         center={center}
         zoom={DEFAULT_ZOOM}
-        className="h-full w-full rounded-xl pointer-events-auto relative z-0"
+        className="h-full w-full min-h-[280px] rounded-xl pointer-events-auto relative z-0"
         zoomControl={false}
-        style={{ background: "#fff" }}
+        style={{ background: "#e5e7eb" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GridOverlayPane />
         {centerOn != null ? <MapRecenter centerOn={centerOn} /> : null}

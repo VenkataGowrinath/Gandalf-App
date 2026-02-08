@@ -59,14 +59,7 @@ export function getEventLabelAtProgress(
     if (e.timestamp.getTime() <= t) last = e
     else break
   }
-  const label = last?.label ?? sorted[0]?.label ?? "Moving"
-  // #region agent log
-  const hasSuddenHaltEvent = events.some((ev) => String(ev.label).toLowerCase() === "sudden halt")
-  if (hasSuddenHaltEvent) {
-    fetch("http://127.0.0.1:7243/ingest/4b9cad50-ec19-4c48-9ad9-0b62b47c574e", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ location: "journeyReplay.ts:getEventLabelAtProgress", message: "event label (sudden-halt journey)", data: { progress, durationMin: duration / 60000, tMin: (t - startMs) / 60000, lastLabel: last?.label, label }, timestamp: Date.now(), hypothesisId: "A" }) }).catch(() => {})
-  }
-  // #endregion
-  return label
+  return last?.label ?? sorted[0]?.label ?? "Moving"
 }
 
 /** Replay progress 0–1 that advances over durationMs and loops. */
