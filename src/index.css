@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+@theme {
+  /* Funky Friend Tracker: neo-brutalist, Fredoka, mint background */
+  --color-funky-mint: #B8EDD2;
+  --color-funky-surface: #B8EDD2;
+  --color-ui-dark: #18181b;
+  --color-ui-dark-muted: #27272a;
+  --color-tooltip-bg: #3B82F6;
+  --color-tooltip-bg-alt: #2563EB;
+  --color-me-bg: #4ADE80;
+  --color-me-text: #000;
+  --color-marker-yellow: #FCD34D;
+  --color-marker-pink: #F472B6;
+  --color-marker-rose: #FB7185;
+  --color-marker-purple: #C084FC;
+  --color-marker-cyan: #67E8F9;
+  --color-marker-amber: #FDE047;
+  --shadow-neo: 2px 2px 0px 0px rgba(0,0,0,1);
+  --shadow-neo-md: 4px 4px 0px 0px rgba(0,0,0,1);
+  --shadow-neo-lg: 6px 6px 0px 0px rgba(0,0,0,1);
+  --shadow-soft: 2px 2px 0px 0px rgba(0,0,0,1);
+  --shadow-card: 4px 4px 0px 0px rgba(0,0,0,1);
+  --radius-card: 1.25rem;
+  --radius-button: 1rem;
+}
+
+@layer base {
+  :root {
+    font-family: "Fredoka", sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color: #111;
+    background: var(--color-funky-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+/* Funky: neo-brutalist shadows */
+.neo-shadow {
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+}
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+.neo-shadow-lg {
+  box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
+}
+
+/* Funky: float and pulse animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+@keyframes float-delayed {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(2); opacity: 0; }
+}
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+@keyframes flash-red {
+  0%, 100% { background-color: #ef4444; }
+  50% { background-color: #991b1b; }
+}
+@keyframes warning-slide {
+  from { background-position: 0 0; }
+  to { background-position: 20px 0; }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float-delayed 5s ease-in-out infinite;
+}
+.animate-danger {
+  animation: pulse-danger 1.5s ease-in-out infinite;
+}
+.animate-flash {
+  animation: flash-red 1.2s ease-in-out infinite;
+}
+.warning-stripes {
+  background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  animation: warning-slide 1s linear infinite;
+}
+
+/* Map: Funky visual language */
+.leaflet-container {
+  font-family: "Fredoka", sans-serif;
+  outline: none;
+  border: none !important;
+}
+
+/* Ensure marker pane and icons are above map/grid and receive clicks */
+.leaflet-marker-pane {
+  z-index: 700 !important;
+}
+.leaflet-marker-pane,
+.leaflet-marker-pane .leaflet-marker-icon {
+  pointer-events: auto !important;
+}
+
+.leaflet-control-zoom {
+  border: 2px solid #000 !important;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-neo);
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  color: #fff !important;
+  background: var(--color-ui-dark) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.leaflet-control-zoom a + a {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  color: #71717a !important;
+  background: transparent !important;
+  padding: 4px 8px !important;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-soft);
+}
+
+.leaflet-control-attribution a {
+  color: #a1a1aa !important;
+}
+
+/* Mint tint on tiles to match funky background */
+.leaflet-tile-pane img {
+  filter: brightness(1.05) saturate(0.85) hue-rotate(-5deg);
+}
+
+/* --- Map markers: Funky (neo, float, pulse-ring) --- */
+
+.member-marker-wrapper.moving {
+  transition: transform 0.4s ease-out;
+}
+
+.member-marker-wrapper.emergency .member-marker-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 4px solid #F472B6;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Sudden halt / danger: red pulse ring 1.5s */
+.member-marker-sudden-halt-ring {
+  position: absolute;
+  inset: -8px;
+  border: 6px solid #ef4444;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
