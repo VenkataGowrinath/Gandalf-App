@@ -46,8 +46,12 @@ export default function App() {
   } | null>(null)
   /** Rahul's sudden-halt alert is shown only once per session; after user takes action we never show again */
   const rahulSuddenHaltAlertShownRef = useRef(false)
-  /** Schedule Rahul's 8s alert only once per group session */
+  /** Schedule Rahul alert only once when entering stage 0 */
   const rahulAlertScheduledRef = useRef(false)
+  /** 0 = Rahul, 1 = Valli help, 2 = Valli second (anomaly), 3 = done. Next pops only 3s after action on previous. */
+  const [notificationStage, setNotificationStage] = useState(0)
+  const nextNotificationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const NOTIFICATION_GAP_MS = 3000
 
   const currentGroup =
     mockGroups.find((g) => g.id === currentGroupId) ?? mockGroups[0]
@@ -84,40 +88,28 @@ export default function App() {
     setJourneyViewOpen(true)
   }, [])
 
-  // Mock: trigger a help request after 5s for demo
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const group = mockGroups[0]
-      const from = group.members[0]
-      if (from) {
-        setHelpRequest((prev) =>
-          prev
-            ? prev
-            : {
-                id: `hr-${Date.now()}`,
-                fromMember: from,
-                message: `${from.name} is asking for help. Can you assist?`,
-                timestamp: new Date(),
-              }
-        )
-      }
-    }, 5000)
-    return () => clearTimeout(t)
-  }, [])
+  // Schedule next notification after 3s gap (clear any pending)
+  const scheduleNextNotification = useCallback(
+    (after: () => void) => {
+      if (nextNotificationTimeoutRef.current) clearTimeout(nextNotificationTimeoutRef.current)
+      nextNotificationTimeoutRef.current = setTimeout(() => {
+        nextNotificationTimeoutRef.current = null
+        after()
+      }, NOTIFICATION_GAP_MS)
+    },
+    [NOTIFICATION_GAP_MS]
+  )
 
-  // Mock: anomaly alert after 8s
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const group = mockGroups[0]
-      const member = group.members[0]
-      if (member) {
-        setAnomaly({
-          message: `${member.name} stopped unexpectedly.`,
-          member,
-        })
-      }
-    }, 8000)
-    return () => clearTimeout(t)
+  const showValliAnomaly = useCallback(() => {
+    const group = mockGroups[0]
+    const member = group.members[0]
+    if (member) {
+      setNotificationStage(2)
+      setAnomaly({
+        message: `${member.name} stopped unexpectedly.`,
+        member,
+      })
+    }
   }, [])
 
   const journeyReplayStartRef = useRef(Date.now())
@@ -125,14 +117,21 @@ export default function App() {
   useEffect(() => {
     setLiveGroup(null)
     setFrozenSuddenHalt(null)
+    setHelpRequest(null)
+    setAnomaly(null)
+    setNotificationStage(0)
     journeyReplayStartRef.current = Date.now()
     rahulAlertScheduledRef.current = false
+    if (nextNotificationTimeoutRef.current) {
+      clearTimeout(nextNotificationTimeoutRef.current)
+      nextNotificationTimeoutRef.current = null
+    }
   }, [currentGroupId])
 
-  // Rahul's alert: show within 8s of journey start, once per session; no repeat after user interacts
+  // Stage 0: show Rahul's alert first (after short delay so map is ready)
   const RAHUL_MEMBER_ID = "sm-4"
-  const RAHUL_ALERT_DELAY_MS = 8000
   useEffect(() => {
+    if (notificationStage !== 0) return
     const rahulInGroup = currentGroup.members.some((m) => m.id === RAHUL_MEMBER_ID)
     const journey = rahulInGroup ? getJourneyForMember(RAHUL_MEMBER_ID) : undefined
     if (
@@ -158,12 +157,12 @@ export default function App() {
       const memberProgress = (progress * speed + offset) % 1
       const position = getPositionAlongPath(journeyNow.path, memberProgress)
       setFrozenSuddenHalt({ memberId: RAHUL_MEMBER_ID, position })
-    }, RAHUL_ALERT_DELAY_MS)
+    }, 1000)
     return () => {
       clearTimeout(t)
       rahulAlertScheduledRef.current = false
     }
-  }, [currentGroupId, currentGroup])
+  }, [currentGroupId, currentGroup, notificationStage])
 
   // Journey replay: members with a journey move along the path; Rahul freezes when 8s alert triggers, others on sudden_halt event
   useEffect(() => {
@@ -291,18 +290,23 @@ export default function App() {
                 <AnomalyToast
                   message={anomaly.message}
                   member={anomaly.member}
-                  onDismiss={() => setAnomaly(null)}
+                  onDismiss={() => {
+                    setAnomaly(null)
+                    setNotificationStage(3)
+                  }}
                   onCall={() => {
                     window.location.href = "tel:+919876543210"
                   }}
                   onChat={() => {
                     openChatWithMember(anomaly.member.id, "Safety Status")
                     setAnomaly(null)
+                    setNotificationStage(3)
                     setChatOpen(true)
                   }}
                   onProvideAssistance={() => {
                     openChatWithMember(anomaly.member.id, "I'm coming")
                     setAnomaly(null)
+                    setNotificationStage(3)
                     setChatOpen(true)
                   }}
                 />
@@ -316,13 +320,21 @@ export default function App() {
                     openChatWithMember(helpRequest.fromMember.id, "I'm coming")
                     setHelpRequest(null)
                     setChatOpen(true)
+                    scheduleNextNotification(showValliAnomaly)
                   }}
-                  onDecline={() => setHelpRequest(null)}
+                  onDecline={() => {
+                    setHelpRequest(null)
+                    scheduleNextNotification(showValliAnomaly)
+                  }}
                   onNavigateToFriend={() => {
                     openNavigateToFriend(helpRequest.fromMember.name)
                     setHelpRequest(null)
+                    scheduleNextNotification(showValliAnomaly)
                   }}
-                  onDismiss={() => setHelpRequest(null)}
+                  onDismiss={() => {
+                    setHelpRequest(null)
+                    scheduleNextNotification(showValliAnomaly)
+                  }}
                 />
               </div>
             )}
@@ -383,6 +395,19 @@ export default function App() {
           if (chatInitialMemberId === frozenSuddenHalt?.memberId) {
             if (frozenSuddenHalt.memberId === "sm-4") rahulSuddenHaltAlertShownRef.current = true
             setFrozenSuddenHalt(null)
+            scheduleNextNotification(() => {
+              const group = mockGroups[0]
+              const from = group.members[0]
+              if (from) {
+                setNotificationStage(1)
+                setHelpRequest({
+                  id: `hr-${Date.now()}`,
+                  fromMember: from,
+                  message: `${from.name} is asking for help. Can you assist?`,
+                  timestamp: new Date(),
+                })
+              }
+            })
           }
         }}
         initialMemberId={chatInitialMemberId}
