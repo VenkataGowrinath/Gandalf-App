@@ -44,8 +44,10 @@ export default function App() {
     memberId: string
     position: { lat: number; lng: number }
   } | null>(null)
-  /** Rahul's sudden-halt alert is shown only once per session; after user takes action we never show again on journey restart */
+  /** Rahul's sudden-halt alert is shown only once per session; after user takes action we never show again */
   const rahulSuddenHaltAlertShownRef = useRef(false)
+  /** Schedule Rahul's 8s alert only once per group session */
+  const rahulAlertScheduledRef = useRef(false)
 
   const currentGroup =
     mockGroups.find((g) => g.id === currentGroupId) ?? mockGroups[0]
@@ -124,9 +126,46 @@ export default function App() {
     setLiveGroup(null)
     setFrozenSuddenHalt(null)
     journeyReplayStartRef.current = Date.now()
+    rahulAlertScheduledRef.current = false
   }, [currentGroupId])
 
-  // Journey replay: members with a journey move along the path; when sudden_halt appears avatar freezes until user interacts with proxy
+  // Rahul's alert: show within 8s of journey start, once per session; no repeat after user interacts
+  const RAHUL_MEMBER_ID = "sm-4"
+  const RAHUL_ALERT_DELAY_MS = 8000
+  useEffect(() => {
+    const rahulInGroup = currentGroup.members.some((m) => m.id === RAHUL_MEMBER_ID)
+    const journey = rahulInGroup ? getJourneyForMember(RAHUL_MEMBER_ID) : undefined
+    if (
+      !rahulInGroup ||
+      !journey ||
+      journey.path.length < 2 ||
+      rahulSuddenHaltAlertShownRef.current ||
+      rahulAlertScheduledRef.current
+    ) {
+      return
+    }
+    rahulAlertScheduledRef.current = true
+    const t = setTimeout(() => {
+      if (rahulSuddenHaltAlertShownRef.current) return
+      const journeyNow = getJourneyForMember(RAHUL_MEMBER_ID)
+      if (!journeyNow || journeyNow.path.length < 2) return
+      const progress = getReplayProgress(
+        journeyReplayStartRef.current,
+        JOURNEY_REPLAY_DURATION_MS
+      )
+      const speed = journeyNow.replaySpeed ?? 1
+      const offset = journeyNow.progressOffset ?? 0
+      const memberProgress = (progress * speed + offset) % 1
+      const position = getPositionAlongPath(journeyNow.path, memberProgress)
+      setFrozenSuddenHalt({ memberId: RAHUL_MEMBER_ID, position })
+    }, RAHUL_ALERT_DELAY_MS)
+    return () => {
+      clearTimeout(t)
+      rahulAlertScheduledRef.current = false
+    }
+  }, [currentGroupId, currentGroup])
+
+  // Journey replay: members with a journey move along the path; Rahul freezes when 8s alert triggers, others on sudden_halt event
   useEffect(() => {
     const base = currentGroup
     const interval = setInterval(() => {
@@ -161,8 +200,15 @@ export default function App() {
           endTime,
           memberProgress
         )
-        const isSuddenHalt = label.toLowerCase() === "sudden halt"
-        if (isSuddenHalt && (!frozenSuddenHalt || frozenSuddenHalt.memberId !== m.id)) {
+        const isSuddenHalt =
+          m.id === RAHUL_MEMBER_ID
+            ? false
+            : label.toLowerCase() === "sudden halt"
+        if (
+          m.id !== RAHUL_MEMBER_ID &&
+          label.toLowerCase() === "sudden halt" &&
+          (!frozenSuddenHalt || frozenSuddenHalt.memberId !== m.id)
+        ) {
           setFrozenSuddenHalt({ memberId: m.id, position })
         }
         return {
@@ -283,7 +329,6 @@ export default function App() {
             {frozenSuddenHalt &&
               (frozenSuddenHalt.memberId !== "sm-4" || !rahulSuddenHaltAlertShownRef.current) &&
               (() => {
-                if (frozenSuddenHalt.memberId === "sm-4") rahulSuddenHaltAlertShownRef.current = true
                 const member = groupForMap.members.find((m) => m.id === frozenSuddenHalt.memberId)
                 const name = member?.name ?? "A friend"
                 return (
