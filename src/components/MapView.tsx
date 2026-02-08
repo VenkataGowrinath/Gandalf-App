@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState, useCallback, type ReactNode } from "react"
+import { useMemo, useEffect, useRef, useState, type ReactNode } from "react"
 import {
   MapContainer,
   TileLayer,
@@ -260,7 +260,7 @@ function MapMarkerClickHandler({
 
 /** Renders member markers (no click handlers on Marker - MapMarkerClickHandler does delegated click) */
 function MemberMarkers({
-  group,
+  group: _group,
   display,
   allMembers,
   trails,
