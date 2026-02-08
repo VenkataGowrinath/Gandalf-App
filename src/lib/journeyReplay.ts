@@ -47,11 +47,11 @@ export function getEventLabelAtProgress(
   endedAt: Date,
   progress: number
 ): string {
-  if (events.length === 0) return "Moving"
+  if (events.length === 0) return "Moving steadily forward"
   const startMs = startedAt.getTime()
   const endMs = endedAt.getTime()
   const duration = endMs - startMs
-  if (duration <= 0) return events[events.length - 1]?.label ?? "Moving"
+  if (duration <= 0) return events[events.length - 1]?.label ?? "Moving steadily forward"
   const t = startMs + progress * duration
   const sorted = [...events].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
   let last: JourneyEvent | null = null
@@ -59,7 +59,7 @@ export function getEventLabelAtProgress(
     if (e.timestamp.getTime() <= t) last = e
     else break
   }
-  return last?.label ?? sorted[0]?.label ?? "Moving"
+  return last?.label ?? sorted[0]?.label ?? "Moving steadily forward"
 }
 
 /** Replay progress 0–1 that advances over durationMs and loops. */

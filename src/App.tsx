@@ -44,7 +44,8 @@ export default function App() {
     memberId: string
     position: { lat: number; lng: number }
   } | null>(null)
-  const [centerOnPosition, setCenterOnPosition] = useState<{ lat: number; lng: number } | null>(null)
+  /** Rahul's sudden-halt alert is shown only once per session; after user takes action we never show again on journey restart */
+  const rahulSuddenHaltAlertShownRef = useRef(false)
 
   const currentGroup =
     mockGroups.find((g) => g.id === currentGroupId) ?? mockGroups[0]
@@ -122,11 +123,10 @@ export default function App() {
   useEffect(() => {
     setLiveGroup(null)
     setFrozenSuddenHalt(null)
-    setCenterOnPosition(null)
     journeyReplayStartRef.current = Date.now()
   }, [currentGroupId])
 
-  // Journey replay: members with a journey move along the path; when sudden_halt appears avatar freezes and map recenters until user interacts with proxy
+  // Journey replay: members with a journey move along the path; when sudden_halt appears avatar freezes until user interacts with proxy
   useEffect(() => {
     const base = currentGroup
     const interval = setInterval(() => {
@@ -164,7 +164,6 @@ export default function App() {
         const isSuddenHalt = label.toLowerCase() === "sudden halt"
         if (isSuddenHalt && (!frozenSuddenHalt || frozenSuddenHalt.memberId !== m.id)) {
           setFrozenSuddenHalt({ memberId: m.id, position })
-          setCenterOnPosition(position)
         }
         return {
           ...m,
@@ -195,7 +194,6 @@ export default function App() {
           <MapView
             group={groupForMap}
             onMemberClick={handleMemberClick}
-            centerOn={centerOnPosition}
             friendCard={
               friendSheetOpen && selectedMember && friendCardAnchor ? (
                 <FriendActionSheet
@@ -282,6 +280,37 @@ export default function App() {
                 />
               </div>
             )}
+            {frozenSuddenHalt &&
+              (frozenSuddenHalt.memberId !== "sm-4" || !rahulSuddenHaltAlertShownRef.current) &&
+              (() => {
+                if (frozenSuddenHalt.memberId === "sm-4") rahulSuddenHaltAlertShownRef.current = true
+                const member = groupForMap.members.find((m) => m.id === frozenSuddenHalt.memberId)
+                const name = member?.name ?? "A friend"
+                return (
+                  <div className="pointer-events-auto absolute left-3 right-3 top-20 z-[14]">
+                    <div
+                      className="rounded-2xl border-2 border-black p-4 neo-shadow bg-red-600 text-white"
+                      role="alert"
+                    >
+                      <p className="text-sm font-bold">Sudden halt</p>
+                      <p className="mt-0.5 text-xs opacity-95">
+                        {name} has stopped suddenly. Check in and see if they're okay.
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-3 w-full rounded-xl border-2 border-white bg-white px-4 py-2.5 text-sm font-bold text-red-600 neo-shadow-sm hover:translate-y-0.5 hover:shadow-none transition-all active:scale-95"
+                        onClick={() => {
+                          if (member) {
+                            openChatWithMember(member.id, "Safety Status")
+                          }
+                        }}
+                      >
+                        Check in with {name}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
             <div className="pointer-events-auto">
               <BottomCTAs
                 onAssistClick={() => {
@@ -292,9 +321,6 @@ export default function App() {
               />
             </div>
           </div>
-        </div>
-        <div className="absolute bottom-1 right-2 z-0 pointer-events-none">
-          <p className="text-[10px] text-green-800/40 font-bold">© FunkyMaps Contributors</p>
         </div>
       </div>
 
@@ -309,8 +335,10 @@ export default function App() {
         isOpen={chatOpen}
         onClose={() => {
           setChatOpen(false)
-          if (chatInitialMemberId === frozenSuddenHalt?.memberId)
+          if (chatInitialMemberId === frozenSuddenHalt?.memberId) {
+            if (frozenSuddenHalt.memberId === "sm-4") rahulSuddenHaltAlertShownRef.current = true
             setFrozenSuddenHalt(null)
+          }
         }}
         initialMemberId={chatInitialMemberId}
         initialIntent={chatInitialIntent}

@@ -29,7 +29,7 @@ function buildValliJourney(): Journey {
       type: "start",
       timestamp: t(52),
       position: start,
-      label: "Left office",
+      label: "Continuing straight route",
       message: "Started journey home",
     },
     {
@@ -37,7 +37,7 @@ function buildValliJourney(): Journey {
       type: "status_change",
       timestamp: t(38),
       position: path[1],
-      label: "Stopped at signal",
+      label: "Stopped briefly roadside",
       message: "Status: stopped at traffic signal",
     },
     {
@@ -45,7 +45,7 @@ function buildValliJourney(): Journey {
       type: "help_requested",
       timestamp: t(28),
       position: path[2],
-      label: "Asked for help",
+      label: "Unusual pause detected",
       message: "Valli requested help. You received the notification.",
     },
     {
@@ -53,7 +53,7 @@ function buildValliJourney(): Journey {
       type: "assistance_accepted",
       timestamp: t(25),
       position: path[2],
-      label: "You accepted",
+      label: "Within assistance range",
       message: "You accepted the request and opened chat.",
     },
     {
@@ -61,7 +61,7 @@ function buildValliJourney(): Journey {
       type: "message",
       timestamp: t(22),
       position: path[3],
-      label: "Chat: “I’m on my way”",
+      label: "Moving steadily forward",
       message: "You sent: I'm on my way. Stay on the line.",
     },
     {
@@ -69,7 +69,7 @@ function buildValliJourney(): Journey {
       type: "reached_home",
       timestamp: t(0),
       position: home,
-      label: "Reached home",
+      label: "Approaching destination now",
       message: "Valli reached home safely.",
     },
   ]
@@ -109,10 +109,10 @@ function buildAnjaliJourney(): Journey {
     new Date(startedAt.getTime() + (45 - minsAgo) * 60 * 1000)
 
   const events: Journey["events"] = [
-    { id: "aj-1", type: "start", timestamp: t(45), position: start, label: "Headed to café", message: "Started" },
-    { id: "aj-2", type: "status_change", timestamp: t(32), position: path[1], label: "Slowing down", message: "Near café" },
-    { id: "aj-3", type: "message", timestamp: t(18), position: path[2], label: "“Be there in 10”", message: "Chat" },
-    { id: "aj-4", type: "reached_home", timestamp: t(0), position: end, label: "Arrived", message: "Reached" },
+    { id: "aj-1", type: "start", timestamp: t(45), position: start, label: "Heading toward Madhapur", message: "Started" },
+    { id: "aj-2", type: "status_change", timestamp: t(32), position: path[1], label: "Slowing near signal", message: "Near café" },
+    { id: "aj-3", type: "message", timestamp: t(18), position: path[2], label: "Approaching destination now", message: "Chat" },
+    { id: "aj-4", type: "reached_home", timestamp: t(0), position: end, label: "Approaching destination now", message: "Reached" },
   ]
 
   return {
@@ -150,12 +150,12 @@ function buildRahulJourney(): Journey {
     new Date(startedAt.getTime() + (60 - minsAgo) * 60 * 1000)
 
   const events: Journey["events"] = [
-    { id: "rj-5", type: "reached_home", timestamp: t(0), position: end, label: "Reached", message: "Arrived" },
-    { id: "rj-4", type: "message", timestamp: t(10), position: path[3], label: "“Running 5 mins late”", message: "Chat" },
-    { id: "rj-3", type: "status_change", timestamp: t(20), position: path[2], label: "Back on route", message: "Resumed" },
+    { id: "rj-5", type: "reached_home", timestamp: t(0), position: end, label: "Approaching destination now", message: "Arrived" },
+    { id: "rj-4", type: "message", timestamp: t(10), position: path[3], label: "Moving steadily forward", message: "Chat" },
+    { id: "rj-3", type: "status_change", timestamp: t(20), position: path[2], label: "Accelerating after stop", message: "Resumed" },
     { id: "rj-1b", type: "status_change", timestamp: t(34), position: path[1], label: "sudden halt", message: "Sudden halt detected" },
-    { id: "rj-2", type: "status_change", timestamp: t(42), position: path[1], label: "Stopped at store", message: "Quick stop" },
-    { id: "rj-1", type: "start", timestamp: t(60), position: start, label: "On the way", message: "Started" },
+    { id: "rj-2", type: "status_change", timestamp: t(42), position: path[1], label: "Stopped briefly roadside", message: "Quick stop" },
+    { id: "rj-1", type: "start", timestamp: t(60), position: start, label: "Continuing straight route", message: "Started" },
   ]
 
   return {

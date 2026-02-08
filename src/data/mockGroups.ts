@@ -1,4 +1,5 @@
 import type { Group } from "@/types"
+import { TOOLTIP_TEXTS } from "./tooltipTexts"
 
 // Hyderabad / Madhapur area
 const center = { lat: 17.4485, lng: 78.3908 }
@@ -28,42 +29,42 @@ export const mockGroups: Group[] = [
         name: "Valli",
         avatar: desiAvatarWomen(2),
         position: { lat: center.lat + 0.0045, lng: center.lng + 0.0015 },
-        status: { type: "moving", text: "turning right", heading: 45, speed: 1 },
+        status: { type: "moving", text: TOOLTIP_TEXTS[0], heading: 45, speed: 1 }, // Turning right ahead
       },
       {
         id: "sm-2",
         name: "Priya",
         avatar: desiAvatarWomen(3),
         position: { lat: center.lat + 0.003, lng: center.lng - 0.0024 },
-        status: { type: "moving", text: "heading north", heading: 0, speed: 1 },
+        status: { type: "stationary" },
       },
       {
         id: "sm-3",
         name: "Anjali",
         avatar: desiAvatarWomen(4),
         position: { lat: center.lat + 0.0024, lng: center.lng - 0.0036 },
-        status: { type: "moving", text: "slowing down", heading: 180 },
+        status: { type: "moving", text: "Slowing near signal", heading: 180 },
       },
       {
         id: "sm-4",
         name: "Rahul",
         avatar: desiAvatarWomen(5),
         position: { lat: center.lat - 0.0015, lng: center.lng + 0.0045 },
-        status: { type: "moving", text: "on the way", heading: 90, speed: 1 },
+        status: { type: "moving", text: "Heading toward Madhapur", heading: 90, speed: 1 },
       },
       {
         id: "sm-5",
         name: "Kavya",
         avatar: desiAvatarWomen(6),
         position: { lat: center.lat - 0.0036, lng: center.lng - 0.0024 },
-        status: { type: "moving", text: "rerouting", heading: 270 },
+        status: { type: "stationary" },
       },
       {
         id: "sm-6",
         name: "Meera",
         avatar: desiAvatarWomen(7),
         position: { lat: center.lat - 0.0006, lng: center.lng - 0.0045 },
-        status: { type: "low_battery", text: "15%" },
+        status: { type: "stationary" },
       },
     ],
   },

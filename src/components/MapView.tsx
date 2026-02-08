@@ -140,7 +140,7 @@ function createMemberIcon(
   const innerContent = isMe
     ? `<span style="font-size:${size >= 56 ? "22" : "18"}px;font-weight:700;color:#000;font-family:Fredoka,sans-serif;">ME</span>`
     : `<img src="${member.avatar}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />`
-  const showTooltip = !isMe && member.status.type !== "stationary" && statusText
+  const showTooltip = !isMe && member.status.type === "moving" && statusText
   const tooltipHtml = showTooltip
     ? `<div style="margin-top:-12px;background:#3B82F6;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:9999px;border:2px solid #000;box-shadow:2px 2px 0 0 rgba(0,0,0,1);white-space:nowrap;transform:rotate(${tooltipRotate}deg);font-family:Fredoka,sans-serif;">${statusText}</div>`
     : ""
@@ -176,28 +176,6 @@ function getStatusClasses(status: CommunityMember["status"]): string {
 }
 
 const GRID_PANE_Z = 350 // above tile (200), below marker (600)
-
-/** When centerOn is set, pans the map to that position once (used when sudden halt appears) */
-function MapRecenter({ centerOn }: { centerOn: { lat: number; lng: number } | null }) {
-  const map = useMap()
-  const lastRef = useRef<{ lat: number; lng: number } | null>(null)
-  useEffect(() => {
-    if (!centerOn) return
-    if (
-      lastRef.current?.lat === centerOn.lat &&
-      lastRef.current?.lng === centerOn.lng
-    )
-      return
-    lastRef.current = centerOn
-    const run = () => {
-      map.invalidateSize()
-      map.flyTo([centerOn.lat, centerOn.lng], map.getZoom(), { duration: 800 })
-    }
-    const t = setTimeout(run, 150)
-    return () => clearTimeout(t)
-  }, [map, centerOn])
-  return null
-}
 
 /** Renders the grid inside a Leaflet pane so markers stay on top */
 function GridOverlayPane() {
@@ -316,12 +294,10 @@ function MemberMarkers({
 export function MapView({
   group,
   onMemberClick,
-  centerOn,
   friendCard,
 }: {
   group: Group
   onMemberClick?: (member: CommunityMember, anchorPoint: { x: number; y: number }) => void
-  centerOn?: { lat: number; lng: number } | null
   friendCard?: ReactNode
 }) {
   const allMembers = useMemo(
@@ -372,16 +348,15 @@ export function MapView({
       <MapContainer
         center={center}
         zoom={DEFAULT_ZOOM}
-        className="h-full w-full min-h-[280px] rounded-xl pointer-events-auto relative z-0"
+        className="h-full w-full min-h-[280px] rounded-xl pointer-events-auto relative z-0 border-2 border-black neo-shadow"
         zoomControl={false}
-        style={{ background: "#e5e7eb" }}
+        style={{ background: "#e5e7eb", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GridOverlayPane />
-        {centerOn != null ? <MapRecenter centerOn={centerOn} /> : null}
         <MapMarkerClickHandler
           group={group}
           allMembers={allMembers}

@@ -159,6 +159,7 @@
   padding: 4px 8px !important;
   border-radius: 9999px;
   box-shadow: var(--shadow-soft);
+  opacity: 0;
 }
 
 .leaflet-control-attribution a {
