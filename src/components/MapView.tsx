@@ -219,10 +219,10 @@ export function MapView({
 
   return (
     <div className="relative h-full w-full min-h-[300px] overflow-hidden isolate rounded-2xl p-5 neo-shadow bg-white pointer-events-none">
-      <div className="h-full w-full min-h-[280px] rounded-xl pointer-events-auto relative z-0 border-2 border-black neo-shadow overflow-hidden" style={{ background: "#0c0c0c", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)" }}>
+      <div className="h-full w-full min-h-[280px] rounded-xl pointer-events-auto relative z-0 border-2 border-black neo-shadow overflow-hidden" style={{ background: "#f2f3f0", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)" }}>
         <Map
           initialViewState={initialViewState}
-          mapStyle="/map-styles/dark-matter.json"
+          mapStyle="/map-styles/positron.json"
           style={{ width: "100%", height: "100%", minHeight: 280 }}
         >
           <Source id="heatmap-source" type="geojson" data={HEATMAP_GEOJSON}>
